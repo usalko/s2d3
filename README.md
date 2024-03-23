@@ -14,7 +14,7 @@ package main
 import (
     "fmt"
 
-    "github.com/mitchallen/s2d3"
+    "github.com/usalko/s2d3"
 )
 
 func main() {
