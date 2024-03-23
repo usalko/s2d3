@@ -1,4 +1,4 @@
-# github.com/mitchallen/go-lib
+# github.com/usalko/s2d3
 
 Usage
 Initialize your module
@@ -26,5 +26,3 @@ Testing
 Tagging
 git tag v0.1.0
 git push origin --tags
-
-
