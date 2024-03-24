@@ -6,3 +6,5 @@ require (
 	github.com/usalko/s2d3/utils v0.1.0-alpha.2
 	golang.org/x/net v0.22.0
 )
+
+require github.com/usalko/s2d3/models v0.1.0-alpha.4 // indirect

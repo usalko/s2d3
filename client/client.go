@@ -10,6 +10,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"net"
@@ -21,6 +22,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/usalko/s2d3/models"
 	"github.com/usalko/s2d3/utils"
 	"golang.org/x/net/proxy"
 )
@@ -331,3 +333,309 @@ func (client *Client) delete(path string, headers *http.Header) (*http.Response,
 	return client.request("DELETE", path, nil, headers)
 }
 
+// --------------------------------------------------------------------------------------------
+
+func (client *Client) List() ([]models.Object, error) {
+	objects := make([]models.Object, 0)
+	clientToken := ""
+	for {
+		response, err := client.get(fmt.Sprintf("/?list-type=2&fetch-owner=true%s", clientToken), nil)
+		if err != nil {
+			return nil, err
+		}
+
+		var r struct {
+			XMLName  xml.Name `xml:"ListBucketResult"`
+			Next     string   `xml:"NextContinuationToken"`
+			Contents []struct {
+				Key          string `xml:"Key"`
+				LastModified string `xml:"LastModified"`
+				ETag         string `xml:"ETag"`
+				Size         int64  `xml:"Size"`
+				StorageClass string `xml:"StorageClass"`
+				Owner        struct {
+					ID          string `xml:"ID"`
+					DisplayName string `xml:"DisplayName"`
+				} `xml:"Owner"`
+			} `xml:"Contents"`
+		}
+		b, err := io.ReadAll(response.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		if response.StatusCode != 200 {
+			return nil, ResponseErrorFrom(b)
+		}
+
+		err = xml.Unmarshal(b, &r)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, f := range r.Contents {
+			mod, _ := time.Parse("2006-01-02T15:04:05.000Z", f.LastModified)
+			objects = append(objects, models.Object{
+				Key:          f.Key,
+				LastModified: mod,
+				ETag:         f.ETag[1 : len(f.ETag)-1],
+				Size:         utils.SizeInBytes(f.Size),
+				StorageClass: f.StorageClass,
+				OwnerID:      f.Owner.ID,
+				OwnerName:    f.Owner.DisplayName,
+			})
+		}
+
+		if r.Next == "" {
+			return objects, nil
+		}
+
+		clientToken = fmt.Sprintf("&continuation-token=%s", r.Next)
+	}
+}
+
+// --------------------------------------------------------------------------------------------
+
+func (client *Client) GetACL(key string) ([]models.Grant, error) {
+	res, err := client.get(key+"?acl", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if res.StatusCode != 200 {
+		return nil, ResponseError(res)
+	}
+
+	var r struct {
+		XMLName xml.Name `xml:"AccessControlPolicy"`
+		List    struct {
+			Grant []struct {
+				Grantee struct {
+					ID   string `xml:"ID"`
+					Name string `xml:"DisplayName"`
+					URI  string `xml:"URI"`
+				} `xml:"Grantee"`
+				Permission string `xml:"Permission"`
+			} `xml:"Grant"`
+		} `xml:"AccessControlList"`
+	}
+
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := xml.Unmarshal(b, &r); err != nil {
+		return nil, err
+	}
+
+	var acl []models.Grant
+	for _, g := range r.List.Grant {
+		group := ""
+		if g.Grantee.URI == "http://acs.amazonaws.com/groups/global/AllUsers" {
+			group = "EVERYONE"
+		}
+		acl = append(acl, models.Grant{
+			GranteeID:   g.Grantee.ID,
+			GranteeName: g.Grantee.Name,
+			Group:       group,
+			Permission:  g.Permission,
+		})
+	}
+	return acl, nil
+}
+
+func (client *Client) ChangeACL(path, acl string) error {
+	headers := make(http.Header)
+	headers.Set("x-amz-acl", acl)
+
+	res, err := client.put(path+"?acl", nil, &headers)
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode != 200 {
+		return ResponseError(res)
+	}
+
+	return nil
+}
+
+// --------------------------------------------------------------------------------------------
+
+func (client *Client) CreateBucket(name, region, acl string) error {
+	/* validate that the bucket name is:
+
+	   - between 3 and 63 characters long (inclusive)
+	   - not include periods (for TLS wildcard matching)
+	   - lower case
+	   - rfc952 compliant
+	*/
+	if ok, _ := regexp.MatchString(`^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$`, name); !ok {
+		return fmt.Errorf("invalid s3 bucket name")
+	}
+
+	was := client.Bucket
+	defer func() { client.Bucket = was }()
+	client.Bucket = name
+
+	body := []byte{}
+	if region != "" {
+		var payload struct {
+			XMLName xml.Name `xml:"CreateBucketConfiguration"`
+			Region  string   `xml:"LocationConstraint"`
+		}
+		payload.Region = region
+
+		var err error
+		body, err = xml.Marshal(payload)
+		if err != nil {
+			return err
+		}
+	}
+
+	headers := make(http.Header)
+	headers.Set("x-amz-acl", acl)
+
+	res, err := client.put("/", body, &headers)
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode != 200 {
+		return ResponseError(res)
+	}
+
+	return nil
+}
+
+func (client *Client) DeleteBucket(name string) error {
+	was := client.Bucket
+	defer func() { client.Bucket = was }()
+	client.Bucket = name
+
+	response, err := client.delete("/", nil)
+	if err != nil {
+		return err
+	}
+
+	if response.StatusCode != 204 {
+		return ResponseError(response)
+	}
+
+	return nil
+}
+
+func (client *Client) ListBuckets() ([]models.Bucket, error) {
+	prev := client.Bucket
+	client.Bucket = ""
+	response, err := client.get("/", nil)
+	client.Bucket = prev
+	if err != nil {
+		return nil, err
+	}
+
+	var request struct {
+		XMLName xml.Name `xml:"ListAllMyBucketsResult"`
+		Owner   struct {
+			ID          string `xml:"ID"`
+			DisplayName string `xml:"DisplayName"`
+		} `xml:"Owner"`
+		Buckets struct {
+			Bucket []struct {
+				Name         string `xml:"Name"`
+				CreationDate string `xml:"CreationDate"`
+			} `xml:"Bucket"`
+		} `xml:"Buckets"`
+	}
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if response.StatusCode != 200 {
+		return nil, ResponseErrorFrom(body)
+	}
+
+	err = xml.Unmarshal(body, &request)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]models.Bucket, len(request.Buckets.Bucket))
+	for i, bkt := range request.Buckets.Bucket {
+		result[i].OwnerID = request.Owner.ID
+		result[i].OwnerName = request.Owner.DisplayName
+		result[i].Name = bkt.Name
+
+		created, _ := time.Parse("2006-01-02T15:04:05.000Z", bkt.CreationDate)
+		result[i].CreationDate = created
+	}
+	return result, nil
+}
+
+// --------------------------------------------------------------------------------------------
+
+func (client *Client) Delete(path string) error {
+	res, err := client.delete(path, nil)
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode != 204 {
+		return ResponseError(res)
+	}
+
+	return nil
+}
+
+// --------------------------------------------------------------------------------------------
+
+func (client *Client) Get(key string) (io.Reader, error) {
+	res, err := client.get(key, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if res.StatusCode != 200 {
+		return nil, ResponseError(res)
+	}
+
+	return res.Body, nil
+}
+
+// --------------------------------------------------------------------------------------------
+
+func (client *Client) NewUpload(path string, headers *http.Header) (*Upload, error) {
+	res, err := client.post(path+"?uploads", nil, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if res.StatusCode != 200 {
+		return nil, ResponseErrorFrom(b)
+	}
+
+	var payload struct {
+		Bucket   string `xml:"Bucket"`
+		Key      string `xml:"Key"`
+		UploadId string `xml:"UploadId"`
+	}
+	err = xml.Unmarshal(b, &payload)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Upload{
+		Key: payload.Key,
+
+		c:    client,
+		id:   payload.UploadId,
+		path: path,
+		n:    0,
+	}, nil
+}

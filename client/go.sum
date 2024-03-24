@@ -1,3 +1,9 @@
+github.com/usalko/s2d3/models v0.1.0-alpha.2 h1:ruu4BHOULxJb0JyceL8MwOMYpdAIpahhIE2CAmDC2bk=
+github.com/usalko/s2d3/models v0.1.0-alpha.2/go.mod h1:elxXZp46U8KUUgtNEJsYHCAX9NipV9wfi7CdDzoI09E=
+github.com/usalko/s2d3/models v0.1.0-alpha.3 h1:h5/tpyIJEX0I3KQPhGRkvbEGr/eZL18gX+W7Ccp7L60=
+github.com/usalko/s2d3/models v0.1.0-alpha.3/go.mod h1:elxXZp46U8KUUgtNEJsYHCAX9NipV9wfi7CdDzoI09E=
+github.com/usalko/s2d3/models v0.1.0-alpha.4 h1:7mb7hpuSstwVJMg7jDq7COFmE5HPDNjjtEaA5bO0EWQ=
+github.com/usalko/s2d3/models v0.1.0-alpha.4/go.mod h1:elxXZp46U8KUUgtNEJsYHCAX9NipV9wfi7CdDzoI09E=
 github.com/usalko/s2d3/utils v0.1.0-alpha.2 h1:DA9YZLe05ekoF8p9HgFZDIx9GCGbGEQBLQFDeJtfMk4=
 github.com/usalko/s2d3/utils v0.1.0-alpha.2/go.mod h1:A10fysa3kWWXMVTXGLKkYjIP7gFg8EEiaK2ydoiumbc=
 golang.org/x/net v0.22.0 h1:9sGLhx7iRIHEiX0oAJ3MRZMUCElJgy7Br1nO+AMN3Tc=
