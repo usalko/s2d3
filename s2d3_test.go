@@ -6,14 +6,22 @@
 package s2d3
 
 import (
+	"io/fs"
+	"os"
 	"testing"
 
 	"github.com/usalko/s2d3/client"
 )
 
 func TestList(t *testing.T) {
+	os.Mkdir("s3data", fs.ModeAppend)
+	_, cancelFunc := Serve("./s3data")
+	defer cancelFunc()
+
 	s3Client, err := client.NewClient(&client.Client{
 		AccessKeyId: "",
+		Domain:      "localhost:3333",
+		Protocol:    "http",
 	})
 	if err != nil {
 		t.Errorf("Error in attempt to create new client %d", err)
