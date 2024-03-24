@@ -19,3 +19,7 @@
 
 # Go workspace file
 go.work
+
+# Drawio specific
+*.bkp
+*.dtmp
