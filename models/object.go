@@ -1,6 +1,6 @@
 /**
  * Author: Vanya Usalko <ivict@rambler.ru>
- * File: s2d3_test.go
+ * File: object.go
  */
 package models
 
