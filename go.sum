@@ -1,3 +1,5 @@
+github.com/usalko/s2d3/client v0.1.0-alpha.5 h1:CYOzs7IK29cBSWdiq50AzSWjOhmxC77jEnEHIYQIHZs=
+github.com/usalko/s2d3/client v0.1.0-alpha.5/go.mod h1:kCdX9lAorWiEmpfrQGpsvdtWbG9Ay0JPzRxwcpml75c=
 github.com/usalko/s2d3/models v0.1.0-alpha.4 h1:7mb7hpuSstwVJMg7jDq7COFmE5HPDNjjtEaA5bO0EWQ=
 github.com/usalko/s2d3/models v0.1.0-alpha.4/go.mod h1:elxXZp46U8KUUgtNEJsYHCAX9NipV9wfi7CdDzoI09E=
 github.com/usalko/s2d3/utils v0.1.0-alpha.2 h1:DA9YZLe05ekoF8p9HgFZDIx9GCGbGEQBLQFDeJtfMk4=
