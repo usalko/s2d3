@@ -1,7 +1,3 @@
-/**
- * Author: Vanya Usalko <ivict@rambler.ru>
- * File: mac256.go
- */
 package utils
 
 import (

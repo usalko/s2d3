@@ -1,8 +1,3 @@
-/**
- * Author: Vanya Usalko <ivict@rambler.ru>
- * File: size_in_bytes.go
- */
-
 package utils
 
 import (

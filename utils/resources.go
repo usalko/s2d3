@@ -1,7 +1,3 @@
-/**
- * Author: Vanya Usalko <ivict@rambler.ru>
- * File: resources.go
- */
 package utils
 
 import (

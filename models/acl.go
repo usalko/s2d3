@@ -11,15 +11,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * File: bucket.go
+ * File: acl.go
  */
 package models
 
-import "time"
-
-type Bucket struct {
-	Name         string
-	CreationDate time.Time
-	OwnerID      string
-	OwnerName    string
-}
+const (
+	PrivateACL                = "private"
+	PublicReadACL             = "public-read"
+	PublicReadWriteACL        = "public-read-write"
+	AWSExecReadACL            = "aws-exec-read"
+	AuthenticatedReadACL      = "authenticated-read"
+	BucketOwnerReadACL        = "bucket-owner-read"
+	BucketOwnerFullControlACL = "bucket-owner-full-control"
+	LogDeliveryWriteACL       = "log-delivery-write"
+)
