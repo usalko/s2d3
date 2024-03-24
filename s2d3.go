@@ -5,5 +5,6 @@
 
 package s2d3
 
-// List objects
-// TODO:
+func Serve(localFolder string) {
+	println("Go on")
+}

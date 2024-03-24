@@ -18,8 +18,7 @@ import (
 )
 
 func main() {
-    fmt.Println(golib.Add(2,3))
-    fmt.Println(golib.Subtract(2,3))
+    s2d3.Serve("./s3data")
 }
 
 Testing
