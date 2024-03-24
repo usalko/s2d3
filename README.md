@@ -4,7 +4,7 @@ Usage
 Initialize your module
 go mod init example.com/my-s2d3-demo
 
-Get the go-lib module
+Get the s2d3 module
 Note that you need to include the v in the version tag.
 
 go get github.com/usalko/s2d3@v0.1.0

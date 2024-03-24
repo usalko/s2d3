@@ -176,41 +176,41 @@ func (client *Client) signature(req *http.Request, raw []byte) string {
 	panic(fmt.Sprintf("unrecognized aws/s3 signature version %d", client.SignatureVersion))
 }
 
-func (client *Client) v2signature(req *http.Request, raw []byte) string {
+func (client *Client) v2signature(request *http.Request, raw []byte) string {
 	now := time.Now().UTC()
 
-	req.Header.Set("x-amz-date", now.Format("20060102T150405Z"))
-	req.Header.Set("host", regexp.MustCompile(`:.*`).ReplaceAllString(req.URL.Host, ""))
+	request.Header.Set("x-amz-date", now.Format("20060102T150405Z"))
+	request.Header.Set("host", regexp.MustCompile(`:.*`).ReplaceAllString(request.URL.Host, ""))
 	if client.Token != "" {
-		req.Header.Set("X-Amz-Security-Token", client.Token)
+		request.Header.Set("X-Amz-Security-Token", client.Token)
 	}
 
-	h := hmac.New(sha1.New, []byte(client.SecretAccessKey))
-	h.Write([]byte(req.Method + "\n"))
-	h.Write([]byte(req.Header.Get("Content-MD5") + "\n"))
-	h.Write([]byte(req.Header.Get("Content-Type") + "\n"))
-	h.Write([]byte(req.Header.Get("Date") + "\n"))
-	h.Write(utils.V2Headers(req))
-	h.Write(utils.V2Resource(client.Bucket, req))
+	hmacHash := hmac.New(sha1.New, []byte(client.SecretAccessKey))
+	hmacHash.Write([]byte(request.Method + "\n"))
+	hmacHash.Write([]byte(request.Header.Get("Content-MD5") + "\n"))
+	hmacHash.Write([]byte(request.Header.Get("Content-Type") + "\n"))
+	hmacHash.Write([]byte(request.Header.Get("Date") + "\n"))
+	hmacHash.Write(utils.V2Headers(request))
+	hmacHash.Write(utils.V2Resource(client.Bucket, request))
 
-	return fmt.Sprintf("AWS %s:%s", client.AccessKeyId, base64.StdEncoding.EncodeToString(h.Sum(nil)))
+	return fmt.Sprintf("AWS %s:%s", client.AccessKeyId, base64.StdEncoding.EncodeToString(hmacHash.Sum(nil)))
 }
 
-func (client *Client) v4signature(req *http.Request, raw []byte) string {
+func (client *Client) v4signature(request *http.Request, raw []byte) string {
 	/* step 0: assemble some temporary values we will need */
 	now := time.Now().UTC()
 	yyyymmdd := now.Format("20060102")
 	scope := fmt.Sprintf("%s/%s/s3/aws4_request", yyyymmdd, client.Region)
-	req.Header.Set("x-amz-date", now.Format("20060102T150405Z"))
-	req.Header.Set("host", req.URL.Host)
+	request.Header.Set("x-amz-date", now.Format("20060102T150405Z"))
+	request.Header.Set("host", request.URL.Host)
 	if client.Token != "" {
-		req.Header.Set("X-Amz-Security-Token", client.Token)
+		request.Header.Set("X-Amz-Security-Token", client.Token)
 	}
 
 	payload := sha256.New()
 	payload.Write(raw)
 	hashed := hex.EncodeToString(payload.Sum(nil))
-	req.Header.Set("x-amz-content-sha256", hashed)
+	request.Header.Set("x-amz-content-sha256", hashed)
 
 	/* step 1: generate the CanonicalRequest (+sha256() it)
 
@@ -222,13 +222,13 @@ func (client *Client) v4signature(req *http.Request, raw []byte) string {
 	   payload()
 	*/
 
-	headers, hexSignature := utils.V4Headers(req)
+	headers, hexSignature := utils.V4Headers(request)
 	canon := sha256.New()
-	canon.Write([]byte(req.Method))
+	canon.Write([]byte(request.Method))
 	canon.Write([]byte("\n"))
-	canon.Write([]byte(url.PathEscape(req.URL.Path)))
+	canon.Write([]byte(url.PathEscape(request.URL.Path)))
 	canon.Write([]byte("\n"))
-	canon.Write(utils.V4QueryString(req.URL.RawQuery))
+	canon.Write(utils.V4QueryString(request.URL.RawQuery))
 	canon.Write([]byte("\n"))
 	canon.Write(hexSignature)
 	canon.Write([]byte("\n"))
@@ -330,3 +330,4 @@ func (client *Client) get(path string, headers *http.Header) (*http.Response, er
 func (client *Client) delete(path string, headers *http.Header) (*http.Response, error) {
 	return client.request("DELETE", path, nil, headers)
 }
+
