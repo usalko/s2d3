@@ -1,4 +1,4 @@
-github.com/usalko/s2d3/utils v0.0.0-20240323203544-b9e6cb80d19c h1:XnB3byjuIStRbheVuna7CPt2ljcjBTmmh2zr8IFBy6Y=
-github.com/usalko/s2d3/utils v0.0.0-20240323203544-b9e6cb80d19c/go.mod h1:A10fysa3kWWXMVTXGLKkYjIP7gFg8EEiaK2ydoiumbc=
+github.com/usalko/s2d3/utils v0.1.0-alpha.2 h1:DA9YZLe05ekoF8p9HgFZDIx9GCGbGEQBLQFDeJtfMk4=
+github.com/usalko/s2d3/utils v0.1.0-alpha.2/go.mod h1:A10fysa3kWWXMVTXGLKkYjIP7gFg8EEiaK2ydoiumbc=
 golang.org/x/net v0.22.0 h1:9sGLhx7iRIHEiX0oAJ3MRZMUCElJgy7Br1nO+AMN3Tc=
 golang.org/x/net v0.22.0/go.mod h1:JKghWKKOSdJwpW2GEx0Ja7fmaKnMsbu+MWVZTokSYmg=
