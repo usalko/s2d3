@@ -6,13 +6,15 @@ package models
 
 import (
 	"time"
+
+	"github.com/usalko/s2d3/utils"
 )
 
 type Object struct {
 	Key          string
 	LastModified time.Time
 	ETag         string
-	Size         SizeInBytes
+	Size         utils.SizeInBytes
 	StorageClass string
 	OwnerID      string
 	OwnerName    string

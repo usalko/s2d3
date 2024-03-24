@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func v2Headers(request *http.Request) []byte {
+func V2Headers(request *http.Request) []byte {
 	//TODO: using standard library
 	subset := make(map[string]string)
 	names := make([]string, 0)
@@ -32,7 +32,7 @@ func v2Headers(request *http.Request) []byte {
 	return bytes.Join(headersLengths, []byte{})
 }
 
-func v4Headers(request *http.Request) ([]byte, []byte) {
+func V4Headers(request *http.Request) ([]byte, []byte) {
 	//TODO: using standard library
 	subset := make(map[string]string)
 	names := make([]string, 0)
