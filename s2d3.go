@@ -9,42 +9,25 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
+
+	"github.com/usalko/s2d3/services"
 )
-
-type KeyServerAddr string
-
-const keyServerAddr KeyServerAddr = "serverAddr"
-
-func getRoot(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	fmt.Printf("%s: got / request\n", ctx.Value(keyServerAddr))
-	io.WriteString(w, "This is my website!\n")
-}
-
-func getHello(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	fmt.Printf("%s: got /hello request\n", ctx.Value(keyServerAddr))
-	io.WriteString(w, "Hello, HTTP!\n")
-}
 
 func Serve(localFolder string) (context.Context, context.CancelFunc) {
 	println("Go on")
 
 	multiplexer := http.NewServeMux()
-	multiplexer.HandleFunc("/", getRoot)
-	multiplexer.HandleFunc("/hello", getHello)
+	multiplexer.HandleFunc("/", services.GetRoot)
+	multiplexer.HandleFunc("/hello", services.GetHello)
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	server := &http.Server{
 		Addr:    ":3333",
 		Handler: multiplexer,
 		BaseContext: func(listener net.Listener) context.Context {
-			ctx = context.WithValue(ctx, keyServerAddr, listener.Addr().String())
+			ctx = context.WithValue(ctx, services.KeyServerAddr, listener.Addr().String())
 			return ctx
 		},
 	}
