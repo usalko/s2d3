@@ -344,7 +344,7 @@ func (client *Client) List() ([]models.Object, error) {
 			return nil, err
 		}
 
-		var r struct {
+		var parsedBody struct {
 			XMLName  xml.Name `xml:"ListBucketResult"`
 			Next     string   `xml:"NextContinuationToken"`
 			Contents []struct {
@@ -359,21 +359,21 @@ func (client *Client) List() ([]models.Object, error) {
 				} `xml:"Owner"`
 			} `xml:"Contents"`
 		}
-		b, err := io.ReadAll(response.Body)
+		body, err := io.ReadAll(response.Body)
 		if err != nil {
 			return nil, err
 		}
 
 		if response.StatusCode != 200 {
-			return nil, ResponseErrorFrom(b)
+			return nil, ResponseErrorFrom(body)
 		}
 
-		err = xml.Unmarshal(b, &r)
+		err = xml.Unmarshal(body, &parsedBody)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, f := range r.Contents {
+		for _, f := range parsedBody.Contents {
 			mod, _ := time.Parse("2006-01-02T15:04:05.000Z", f.LastModified)
 			objects = append(objects, models.Object{
 				Key:          f.Key,
@@ -386,11 +386,11 @@ func (client *Client) List() ([]models.Object, error) {
 			})
 		}
 
-		if r.Next == "" {
+		if parsedBody.Next == "" {
 			return objects, nil
 		}
 
-		clientToken = fmt.Sprintf("&continuation-token=%s", r.Next)
+		clientToken = fmt.Sprintf("&continuation-token=%s", parsedBody.Next)
 	}
 }
 
