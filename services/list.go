@@ -9,9 +9,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
-	"net/url"
-
-	"github.com/usalko/s2d3/models"
 )
 
 type EntryOwner struct {
@@ -35,24 +32,6 @@ type ListResponse struct {
 }
 
 func List(writer http.ResponseWriter, request *http.Request, listType any) {
-	ctx := request.Context()
-	fmt.Printf("%s: got / request\n", ctx.Value(KeyServerAddr))
-
-	parsedQuery, err := url.ParseQuery(request.URL.RawQuery)
-
-	if err != nil {
-		fmt.Printf("%s", err)
-		return
-	}
-
-	println(parsedQuery)
-	println(request.Body)
-
-	bucket := models.Bucket{
-		Name: "",
-	}
-	println(&bucket)
-
 	response := &ListResponse{}
 	responseBytes, err := xml.Marshal(response)
 
