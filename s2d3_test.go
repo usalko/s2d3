@@ -17,9 +17,12 @@ import (
 	"github.com/usalko/s2d3/services"
 )
 
-func WithContext(handler http.HandlerFunc, dataFolder string) http.HandlerFunc {
+var serverAddr = ""
+
+func WithContextDecorator(handler http.HandlerFunc, dataFolder string) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		ctx := request.Context()
+		ctx = context.WithValue(ctx, services.KeyServerAddr, serverAddr)
 		ctx = context.WithValue(ctx, services.KeyDataFolder, dataFolder)
 		handler(writer, request.WithContext(ctx))
 	}
@@ -28,14 +31,15 @@ func WithContext(handler http.HandlerFunc, dataFolder string) http.HandlerFunc {
 func TestList(t *testing.T) {
 	localFolder := "./s3data"
 	InitStorage(localFolder)
-	server := httptest.NewServer(WithContext(services.GetRoot, localFolder))
+	server := httptest.NewServer(WithContextDecorator(services.GetRoot, localFolder))
 	// Close the server when test finishes
 	defer server.Close()
-	u, _ := url.Parse(server.URL)
+	parsedUrl, _ := url.Parse(server.URL)
+	serverAddr = parsedUrl.Host
 
 	s3Client, err := client.NewClient(&client.Client{
 		AccessKeyId: "",
-		Domain:      u.Host, //"localhost:3333",
+		Domain:      parsedUrl.Host, //"localhost:3333",
 		Protocol:    "http",
 	})
 	if err != nil {
@@ -53,14 +57,15 @@ func TestList(t *testing.T) {
 func TestUpload(t *testing.T) {
 	localFolder := "./s3data"
 	InitStorage(localFolder)
-	server := httptest.NewServer(WithContext(services.GetRoot, localFolder))
+	server := httptest.NewServer(WithContextDecorator(services.GetRoot, localFolder))
 	// Close the server when test finishes
 	defer server.Close()
-	u, _ := url.Parse(server.URL)
+	parsedUrl, _ := url.Parse(server.URL)
+	serverAddr = parsedUrl.Host
 
 	s3Client, err := client.NewClient(&client.Client{
 		AccessKeyId: "",
-		Domain:      u.Host, //"localhost:3333",
+		Domain:      parsedUrl.Host, //"localhost:3333",
 		Protocol:    "http",
 	})
 	if err != nil {

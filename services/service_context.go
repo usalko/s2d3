@@ -22,7 +22,7 @@ const KeyDataFolder ServiceContextKey = "dataFolder"
 
 func GetRoot(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
-	fmt.Printf("%s: got / request\n", ctx.Value(KeyServerAddr))
+	fmt.Printf("%s: [%s] / request\n", ctx.Value(KeyServerAddr), request.Method)
 
 	parsedQuery, err := url.ParseQuery(request.URL.RawQuery)
 
@@ -37,30 +37,32 @@ func GetRoot(writer http.ResponseWriter, request *http.Request) {
 		listType, exists := parsedQuery["list-type"]
 		if exists {
 			List(writer, request, listType)
-		} else {
-			fmt.Printf("%s: got / request\n", ctx.Value(KeyServerAddr))
+			return
 		}
 
 	case "POST":
 		_, exists := parsedQuery["uploads"]
 		if exists {
 			Upload(writer, request)
-		} else {
-			fmt.Printf("%s: got / request\n", ctx.Value(KeyServerAddr))
+			return
+		}
+
+		_, exists = parsedQuery["uploadId"]
+		if exists {
+			Upload(writer, request)
+			return
 		}
 
 	case "PUT":
 		_, exists := parsedQuery["uploadId"]
 		if exists {
 			Upload(writer, request)
-		} else {
-			fmt.Printf("%s: got / request\n", ctx.Value(KeyServerAddr))
+			return
 		}
 
-	default:
-		fmt.Printf("%s: got / request\n", ctx.Value(KeyServerAddr))
 	}
 
+	fmt.Printf("%s: [%s] /%s request\n", ctx.Value(KeyServerAddr), request.Method, request.URL.Path)
 }
 
 func GetHello(writer http.ResponseWriter, request *http.Request) {

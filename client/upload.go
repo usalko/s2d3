@@ -5,12 +5,9 @@ import (
 	"fmt"
 	"io"
 	"sync"
-)
 
-type xmlpart struct {
-	PartNumber int    `xml:"PartNumber"`
-	ETag       string `xml:"ETag"`
-}
+	"github.com/usalko/s2d3/models"
+)
 
 type Upload struct {
 	Key        string
@@ -20,11 +17,11 @@ type Upload struct {
 	signature  string
 	path       string
 
-	parts []xmlpart
+	parts []models.XmlPart
 }
 
 func (upload *Upload) nextPart() int {
-	upload.parts = append(upload.parts, xmlpart{})
+	upload.parts = append(upload.parts, models.XmlPart{})
 	upload.partNumber = upload.partNumber + 1
 	return upload.partNumber
 }
@@ -40,7 +37,7 @@ func (upload *Upload) writePart(body []byte, partNumber int) error {
 	}
 	defer res.Body.Close()
 
-	upload.parts[partNumber-1] = xmlpart{
+	upload.parts[partNumber-1] = models.XmlPart{
 		PartNumber: partNumber,
 		ETag:       res.Header.Get("ETag"),
 	}
@@ -53,8 +50,8 @@ func (upload *Upload) Write(body []byte) error {
 
 func (upload *Upload) Done() error {
 	var payload struct {
-		XMLName xml.Name  `xml:"CompleteMultipartUpload"`
-		Parts   []xmlpart `xml:"Part"`
+		XMLName xml.Name         `xml:"CompleteMultipartUpload"`
+		Parts   []models.XmlPart `xml:"Part"`
 	}
 	payload.Parts = upload.parts
 
