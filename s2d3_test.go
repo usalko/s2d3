@@ -6,6 +6,7 @@
 package s2d3
 
 import (
+	"bytes"
 	"context"
 	"net/http"
 	"net/http/httptest"
@@ -66,12 +67,23 @@ func TestUpload(t *testing.T) {
 		t.Errorf("Error in attempt to create new client %d", err)
 	}
 
-	// upload, err := s3Client.NewUpload()
+	upload, err := s3Client.NewUpload("test123/test456", nil)
+	if err != nil {
+		t.Errorf("Error in attempt to upload object %d", err)
+	}
 
-	// result, err := upl
-	// if err != nil {
-	// 	t.Errorf("Error in attempt to list objects %d", err)
-	// }
+	wroteBytesCount, err := upload.Stream(bytes.NewReader([]byte("Test")), 5*1024*1024*1024)
+	if err != nil {
+		t.Errorf("Error in attempt to write stream %d", err)
+	}
 
-	println(s3Client)
+	if wroteBytesCount <= 0 {
+		t.Errorf("Didn't write anything %d", err)
+	}
+
+	err = upload.Done()
+	if err != nil {
+		t.Errorf("Error in attempt to finish upload %d", err)
+	}
+
 }

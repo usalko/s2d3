@@ -611,13 +611,13 @@ func (client *Client) NewUpload(path string, headers *http.Header) (*Upload, err
 		return nil, err
 	}
 
-	b, err := io.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
 
 	if res.StatusCode != 200 {
-		return nil, ResponseErrorFrom(b)
+		return nil, ResponseErrorFrom(body)
 	}
 
 	var payload struct {
@@ -625,7 +625,7 @@ func (client *Client) NewUpload(path string, headers *http.Header) (*Upload, err
 		Key      string `xml:"Key"`
 		UploadId string `xml:"UploadId"`
 	}
-	err = xml.Unmarshal(b, &payload)
+	err = xml.Unmarshal(body, &payload)
 	if err != nil {
 		return nil, err
 	}

@@ -31,10 +31,36 @@ func GetRoot(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	listType, exists := parsedQuery["list-type"]
-	if exists {
-		List(writer, request, listType)
+	switch request.Method {
+
+	case "GET":
+		listType, exists := parsedQuery["list-type"]
+		if exists {
+			List(writer, request, listType)
+		} else {
+			fmt.Printf("%s: got / request\n", ctx.Value(KeyServerAddr))
+		}
+
+	case "POST":
+		_, exists := parsedQuery["uploads"]
+		if exists {
+			Upload(writer, request)
+		} else {
+			fmt.Printf("%s: got / request\n", ctx.Value(KeyServerAddr))
+		}
+
+	case "PUT":
+		_, exists := parsedQuery["uploadId"]
+		if exists {
+			Upload(writer, request)
+		} else {
+			fmt.Printf("%s: got / request\n", ctx.Value(KeyServerAddr))
+		}
+
+	default:
+		fmt.Printf("%s: got / request\n", ctx.Value(KeyServerAddr))
 	}
+
 }
 
 func GetHello(writer http.ResponseWriter, request *http.Request) {

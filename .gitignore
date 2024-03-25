@@ -23,3 +23,6 @@ go.work
 # Drawio specific
 *.bkp
 *.dtmp
+
+# Debug
+__debug*
