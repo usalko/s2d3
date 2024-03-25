@@ -6,23 +6,28 @@
 package s2d3
 
 import (
-	"io/fs"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"testing"
 
 	"github.com/usalko/s2d3/client"
 	"github.com/usalko/s2d3/services"
 )
 
-func TestList(t *testing.T) {
-	os.Mkdir("s3data", fs.ModeAppend)
-	// _, cancelFunc := Serve("./s3data")
-	// defer cancelFunc()
+func WithContext(handler http.HandlerFunc, dataFolder string) http.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		ctx := request.Context()
+		ctx = context.WithValue(ctx, services.KeyDataFolder, dataFolder)
+		handler(writer, request.WithContext(ctx))
+	}
+}
 
-	server := httptest.NewServer(http.HandlerFunc(services.GetRoot))
+func TestList(t *testing.T) {
+	localFolder := "./s3data"
+	InitStorage(localFolder)
+	server := httptest.NewServer(WithContext(services.GetRoot, localFolder))
 	// Close the server when test finishes
 	defer server.Close()
 	u, _ := url.Parse(server.URL)
@@ -42,12 +47,31 @@ func TestList(t *testing.T) {
 	}
 
 	println(result)
+}
 
-	// a := 1
-	// b := 2
-	// expected := a + b
+func TestUpload(t *testing.T) {
+	localFolder := "./s3data"
+	InitStorage(localFolder)
+	server := httptest.NewServer(WithContext(services.GetRoot, localFolder))
+	// Close the server when test finishes
+	defer server.Close()
+	u, _ := url.Parse(server.URL)
 
-	// if got := Add(a, b); got != expected {
-	// 	t.Errorf("Add(%d, %d) = %d, didn't return %d", a, b, got, expected)
+	s3Client, err := client.NewClient(&client.Client{
+		AccessKeyId: "",
+		Domain:      u.Host, //"localhost:3333",
+		Protocol:    "http",
+	})
+	if err != nil {
+		t.Errorf("Error in attempt to create new client %d", err)
+	}
+
+	// upload, err := s3Client.NewUpload()
+
+	// result, err := upl
+	// if err != nil {
+	// 	t.Errorf("Error in attempt to list objects %d", err)
 	// }
+
+	println(s3Client)
 }

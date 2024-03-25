@@ -18,6 +18,7 @@ type ServiceContext struct {
 type ServiceContextKey string
 
 const KeyServerAddr ServiceContextKey = "serverAddr"
+const KeyDataFolder ServiceContextKey = "dataFolder"
 
 func GetRoot(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()

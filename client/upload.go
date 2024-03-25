@@ -13,42 +13,42 @@ type xmlpart struct {
 }
 
 type Upload struct {
-	Key  string
-	c    *Client
-	n    int
-	id   string
-	sig  string
-	path string
+	Key        string
+	client     *Client
+	partNumber int
+	id         string
+	signature  string
+	path       string
 
 	parts []xmlpart
 }
 
-func (u *Upload) nextPart() int {
-	u.parts = append(u.parts, xmlpart{})
-	u.n = u.n + 1
-	return u.n
+func (upload *Upload) nextPart() int {
+	upload.parts = append(upload.parts, xmlpart{})
+	upload.partNumber = upload.partNumber + 1
+	return upload.partNumber
 }
 
-func (upload *Upload) writePart(b []byte, n int) error {
-	if n > 10000 {
+func (upload *Upload) writePart(body []byte, partNumber int) error {
+	if partNumber > 10000 {
 		return fmt.Errorf("S3 limits the number of multipart upload segments to 10k")
 	}
 
-	res, err := upload.c.put(fmt.Sprintf("%s?partNumber=%d&uploadId=%s", upload.path, n, upload.id), b, nil)
+	res, err := upload.client.put(fmt.Sprintf("%s?partNumber=%d&uploadId=%s", upload.path, partNumber, upload.id), body, nil)
 	if err != nil {
 		return err
 	}
 	defer res.Body.Close()
 
-	upload.parts[n-1] = xmlpart{
-		PartNumber: n,
+	upload.parts[partNumber-1] = xmlpart{
+		PartNumber: partNumber,
 		ETag:       res.Header.Get("ETag"),
 	}
 	return nil
 }
 
-func (upload *Upload) Write(b []byte) error {
-	return upload.writePart(b, upload.nextPart())
+func (upload *Upload) Write(body []byte) error {
+	return upload.writePart(body, upload.nextPart())
 }
 
 func (upload *Upload) Done() error {
@@ -58,12 +58,12 @@ func (upload *Upload) Done() error {
 	}
 	payload.Parts = upload.parts
 
-	b, err := xml.Marshal(payload)
+	body, err := xml.Marshal(payload)
 	if err != nil {
 		return err
 	}
 
-	res, err := upload.c.post(fmt.Sprintf("%s?uploadId=%s", upload.path, upload.id), b, nil)
+	res, err := upload.client.post(fmt.Sprintf("%s?uploadId=%s", upload.path, upload.id), body, nil)
 	if err != nil {
 		return err
 	}
@@ -74,18 +74,18 @@ func (upload *Upload) Done() error {
 	return nil
 }
 
-func (upload *Upload) ParallelStream(in io.Reader, block int, threads int) (int64, error) {
-	if block < 5*1024*1024 {
+func (upload *Upload) ParallelStream(in io.Reader, blockSize int, threads int) (int64, error) {
+	if blockSize < 5*1024*1024 {
 		return 0, fmt.Errorf("S3 requires block sizes of 5MB or higher")
 	}
 
 	type chunk struct {
-		n     int
-		block []byte
+		partNumber int
+		block      []byte
 	}
 
 	var wg sync.WaitGroup
-	chunks := make(chan chunk, 0)
+	chunks := make(chan chunk)
 	errors := make(chan error, threads)
 	for i := 0; i < threads; i++ {
 		wg.Add(1)
@@ -95,7 +95,7 @@ func (upload *Upload) ParallelStream(in io.Reader, block int, threads int) (int6
 			//fmt.Printf("io/%d: waiting for first chunk...\n", idx)
 			for chunk := range chunks {
 				//fmt.Printf("io/%d: writing %d bytes in chunk %d via writePart...\n", idx, len(chunk.block), chunk.n)
-				err := upload.writePart(chunk.block, chunk.n)
+				err := upload.writePart(chunk.block, chunk.partNumber)
 				if err != nil {
 					errors <- err
 					return
@@ -114,8 +114,8 @@ func (upload *Upload) ParallelStream(in io.Reader, block int, threads int) (int6
 	}()
 
 	for {
-		buf := make([]byte, block)
-		nread, err := io.ReadAtLeast(in, buf, block)
+		buf := make([]byte, blockSize)
+		readBytes, err := io.ReadAtLeast(in, buf, blockSize)
 		if err != nil && err != io.ErrUnexpectedEOF {
 			if err == io.EOF {
 				return total, nil
@@ -124,11 +124,11 @@ func (upload *Upload) ParallelStream(in io.Reader, block int, threads int) (int6
 		}
 
 		chunks <- chunk{
-			n:     upload.nextPart(),
-			block: buf[0:nread],
+			partNumber: upload.nextPart(),
+			block:      buf[0:readBytes],
 		}
 
-		total += int64(nread)
+		total += int64(readBytes)
 		if err == io.ErrUnexpectedEOF {
 			return total, nil
 		}
@@ -141,6 +141,6 @@ func (upload *Upload) ParallelStream(in io.Reader, block int, threads int) (int6
 	}
 }
 
-func (upload *Upload) Stream(reader io.Reader, block int) (int64, error) {
-	return upload.ParallelStream(reader, block, 1)
+func (upload *Upload) Stream(reader io.Reader, blockSize int) (int64, error) {
+	return upload.ParallelStream(reader, blockSize, 1)
 }

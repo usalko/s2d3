@@ -633,9 +633,9 @@ func (client *Client) NewUpload(path string, headers *http.Header) (*Upload, err
 	return &Upload{
 		Key: payload.Key,
 
-		c:    client,
-		id:   payload.UploadId,
-		path: path,
-		n:    0,
+		client:     client,
+		id:         payload.UploadId,
+		path:       path,
+		partNumber: 0,
 	}, nil
 }
