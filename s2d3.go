@@ -19,8 +19,8 @@ func Serve(localFolder string) (context.Context, context.CancelFunc) {
 	println("Go on")
 
 	multiplexer := http.NewServeMux()
-	multiplexer.HandleFunc("/", services.GetRoot)
-	multiplexer.HandleFunc("/hello", services.GetHello)
+	multiplexer.HandleFunc(".*", services.GetRoot)
+	// multiplexer.HandleFunc("/hello", services.GetHello)
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	server := &http.Server{
