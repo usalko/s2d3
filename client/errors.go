@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/usalko/s2d3/models"
 )
 
 func ResponseError(response *http.Response) error {
@@ -16,11 +18,7 @@ func ResponseError(response *http.Response) error {
 }
 
 func ResponseErrorFrom(body []byte) error {
-	var payload struct {
-		XMLName xml.Name `xml:"Error"`
-		Code    string   `xml:"Code"`
-		Message string   `xml:"Message"`
-	}
+	payload := models.Error{}
 	if err := xml.Unmarshal(body, &payload); err != nil {
 		return fmt.Errorf("unable to parse response xml: %s", err)
 	}

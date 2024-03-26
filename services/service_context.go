@@ -22,7 +22,6 @@ const KeyDataFolder ServiceContextKey = "dataFolder"
 
 func GetRoot(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
-	fmt.Printf("%s: [%s] / request\n", ctx.Value(KeyServerAddr), request.Method)
 
 	parsedQuery, err := url.ParseQuery(request.URL.RawQuery)
 
@@ -39,6 +38,8 @@ func GetRoot(writer http.ResponseWriter, request *http.Request) {
 			List(writer, request, listType)
 			return
 		}
+		Get(writer, request)
+		return
 
 	case "POST":
 		_, exists := parsedQuery["uploads"]
@@ -62,7 +63,7 @@ func GetRoot(writer http.ResponseWriter, request *http.Request) {
 
 	}
 
-	fmt.Printf("%s: [%s] /%s request\n", ctx.Value(KeyServerAddr), request.Method, request.URL.Path)
+	fmt.Printf("%s: [%s] %s request not processed\n", ctx.Value(KeyServerAddr), request.Method, request.URL.Path)
 }
 
 func GetHello(writer http.ResponseWriter, request *http.Request) {
