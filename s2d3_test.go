@@ -35,7 +35,7 @@ func WithContextDecorator(handler http.HandlerFunc, dataFolder string) http.Hand
 
 func TestList(t *testing.T) {
 	InitStorage(TEST_SERVED_LOCAL_FOLDER)
-	server := httptest.NewServer(WithContextDecorator(services.GetRoot, TEST_SERVED_LOCAL_FOLDER))
+	server := httptest.NewServer(WithContextDecorator(services.ApiRouter, TEST_SERVED_LOCAL_FOLDER))
 	// Close the server when test finishes
 	defer server.Close()
 	parsedUrl, _ := url.Parse(server.URL)
@@ -60,7 +60,7 @@ func TestList(t *testing.T) {
 
 func TestUpload(t *testing.T) {
 	InitStorage(TEST_SERVED_LOCAL_FOLDER)
-	server := httptest.NewServer(WithContextDecorator(services.GetRoot, TEST_SERVED_LOCAL_FOLDER))
+	server := httptest.NewServer(WithContextDecorator(services.ApiRouter, TEST_SERVED_LOCAL_FOLDER))
 	// Close the server when test finishes
 	defer server.Close()
 	parsedUrl, _ := url.Parse(server.URL)
@@ -98,7 +98,7 @@ func TestUpload(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	InitStorage(TEST_SERVED_LOCAL_FOLDER)
-	server := httptest.NewServer(WithContextDecorator(services.GetRoot, TEST_SERVED_LOCAL_FOLDER))
+	server := httptest.NewServer(WithContextDecorator(services.ApiRouter, TEST_SERVED_LOCAL_FOLDER))
 	// Close the server when test finishes
 	defer server.Close()
 	parsedUrl, _ := url.Parse(server.URL)

@@ -20,8 +20,7 @@ type ServiceContextKey string
 const KeyServerAddr ServiceContextKey = "serverAddr"
 const KeyDataFolder ServiceContextKey = "dataFolder"
 
-func GetRoot(writer http.ResponseWriter, request *http.Request) {
-	ctx := request.Context()
+func ApiRouter(writer http.ResponseWriter, request *http.Request) {
 
 	parsedQuery, err := url.ParseQuery(request.URL.RawQuery)
 
@@ -63,7 +62,7 @@ func GetRoot(writer http.ResponseWriter, request *http.Request) {
 
 	}
 
-	fmt.Printf("%s: [%s] %s request not processed\n", ctx.Value(KeyServerAddr), request.Method, request.URL.Path)
+	fmt.Printf("%s: [%s] %s request not processed\n", request.Context().Value(KeyServerAddr), request.Method, request.URL.Path)
 }
 
 func GetHello(writer http.ResponseWriter, request *http.Request) {

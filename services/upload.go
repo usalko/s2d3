@@ -7,11 +7,15 @@ package services
 
 import (
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/xml"
 	"fmt"
 	"io"
+	"math/big"
 	"net/http"
 	"net/url"
+	"strings"
+	"time"
 
 	"github.com/usalko/s2d3/models"
 )
@@ -30,6 +34,14 @@ type UploadPart struct {
 type UploadDone struct {
 	XMLName xml.Name         `xml:"CompleteMultipartUpload"`
 	Parts   []models.XmlPart `xml:"Part"`
+}
+
+func bucketNameAndObjectKey(path string) (string, string) {
+	bucketName, objectKey, exists := strings.Cut(path, "/")
+	if exists {
+		return bucketName, objectKey
+	}
+	return "", path
 }
 
 func Upload(writer http.ResponseWriter, request *http.Request) {
@@ -70,10 +82,19 @@ func Upload(writer http.ResponseWriter, request *http.Request) {
 			}
 			return
 		} else {
+			path, err := url.QueryUnescape(request.URL.Path)
+			if err != nil {
+				fmt.Printf("%s", err)
+				return
+			}
+			bucketName, objectKey := bucketNameAndObjectKey(path)
+
+			uploadId := strings.Join([]string{path, hex.EncodeToString(new(big.Int).SetInt64(time.Now().UnixMicro()).Bytes())}, ":")
+
 			response := &UploadStart{
-				Bucket:   "",
-				Key:      request.URL.Path,
-				UploadId: base64.StdEncoding.EncodeToString([]byte(request.URL.Path)), // TODO: add timestamp
+				Bucket:   bucketName,
+				Key:      objectKey,
+				UploadId: base64.StdEncoding.EncodeToString([]byte(uploadId)),
 			}
 			responseBytes, err := xml.Marshal(response)
 
@@ -96,14 +117,24 @@ func Upload(writer http.ResponseWriter, request *http.Request) {
 		uploadIds, exists := parsedQuery["uploadId"]
 
 		if exists {
-			for _, uploadId := range uploadIds {
-				path, err := base64.StdEncoding.DecodeString(uploadId)
+			for _, encodedUploadId := range uploadIds {
+				uploadId, err := base64.StdEncoding.DecodeString(encodedUploadId)
 				if err != nil {
 					fmt.Printf("%s", err)
 					return
 				}
 
-				body, err := io.ReadAll(request.Body)
+				path, suffix, found := strings.Cut(string(uploadId), ":")
+				if !found {
+					fmt.Printf("Invalid uploadId %s", err)
+					return
+				}
+				bucketName, objectName := bucketNameAndObjectKey(path)
+
+				storage := Storage{
+					RootFolder: request.Context().Value(KeyDataFolder).(string),
+				}
+				err = storage.PushData(bucketName, objectName, suffix, request.Body)
 				if err != nil {
 					fmt.Printf("%s", err)
 					return
@@ -115,8 +146,6 @@ func Upload(writer http.ResponseWriter, request *http.Request) {
 				// 	fmt.Printf("%s", err)
 				// 	return
 				// }
-				println(string(body[:]))
-				println(string(path[:]))
 			}
 			return
 		}

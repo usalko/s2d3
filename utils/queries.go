@@ -8,7 +8,7 @@ import (
 )
 
 func V4QueryString(queryString string) []byte {
-	//TODO: using standard library
+	//TODO: please use standard library
 	if queryString == "" {
 		return []byte{}
 	}

@@ -8,7 +8,7 @@ import (
 )
 
 func V2Headers(request *http.Request) []byte {
-	//TODO: using standard library
+	//TODO: please use standard library
 	subset := make(map[string]string)
 	names := make([]string, 0)
 
@@ -29,7 +29,7 @@ func V2Headers(request *http.Request) []byte {
 }
 
 func V4Headers(request *http.Request) ([]byte, []byte) {
-	//TODO: using standard library
+	//TODO: please use standard library
 	subset := make(map[string]string)
 	names := make([]string, 0)
 
