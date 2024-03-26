@@ -9,16 +9,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/fs"
 	"net"
 	"net/http"
-	"os"
 
 	"github.com/usalko/s2d3/services"
 )
 
 func InitStorage(localFolder string) {
-	os.Mkdir(localFolder, fs.ModeAppend)
+	storage := services.Storage{
+		RootFolder: localFolder,
+	}
+	storage.Init()
 }
 
 func Serve(localFolder string) (context.Context, context.CancelFunc) {

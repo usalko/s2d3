@@ -1,7 +1,11 @@
 package services
 
 import (
+	"fmt"
 	"io"
+	"io/fs"
+	"os"
+	"strings"
 
 	"github.com/usalko/s2d3/utils"
 )
@@ -34,8 +38,8 @@ func findBreakpoint(dataSize int) (int, int) {
 		if int(breakpoint) > dataSize {
 			if index > 0 {
 				breakpointIndex = index - 1
+				countOfSegments = dataSize / int(BREAKPOINTS[breakpointIndex])
 			}
-			countOfSegments = dataSize / int(BREAKPOINTS[breakpointIndex])
 			break
 		}
 		if int(breakpoint+BREAKPOINTS_DELTA[index]) > dataSize {
@@ -47,6 +51,22 @@ func findBreakpoint(dataSize int) (int, int) {
 	return breakpointIndex, countOfSegments
 }
 
+func (storage *Storage) Init() {
+	os.Mkdir(storage.RootFolder, fs.ModeDir|0775)
+}
+
+func (storage *Storage) CheckUpload(bucketName string, objectKey string, suffix string, uploadDone UploadDone) error {
+	_, err := os.Open(strings.Join([]string{
+		storage.RootFolder,
+		bucketName,
+		objectKey,
+	}, "/"))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (storage *Storage) PushData(bucketName string, objectKey string, suffix string, reader io.ReadCloser) error {
 	content, err := io.ReadAll(reader)
 	if err != nil {
@@ -54,9 +74,35 @@ func (storage *Storage) PushData(bucketName string, objectKey string, suffix str
 	}
 
 	breakpointIndex, countOfSegments := findBreakpoint(len(content))
+	segmentSize := BREAKPOINTS[breakpointIndex]
+	segmentDelta := BREAKPOINTS_DELTA[breakpointIndex]
 
-	println(breakpointIndex)
-	println((countOfSegments))
+	objectParentPath := strings.Join([]string{
+		storage.RootFolder,
+		bucketName,
+	}, "/")
+	err = os.MkdirAll(objectParentPath, fs.ModeDir|0775)
+	if err != nil {
+		return err
+	}
 
+	if countOfSegments == 1 {
+		// Save object as single file
+
+		err = os.WriteFile(strings.Join([]string{
+			objectParentPath,
+			objectKey,
+		}, "/"), content, 0644)
+		if err != nil {
+			return err
+		}
+
+	} else if countOfSegments > 1 {
+		println(segmentSize)
+		println(segmentDelta)
+		return fmt.Errorf("not implemented for countOfSegments %d", countOfSegments)
+	} else {
+		return fmt.Errorf("invalid count of segments for content length %d", len(content))
+	}
 	return nil
 }

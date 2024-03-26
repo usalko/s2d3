@@ -37,55 +37,62 @@ type UploadDone struct {
 }
 
 func bucketNameAndObjectKey(path string) (string, string) {
-	bucketName, objectKey, exists := strings.Cut(path, "/")
+	bucketName, objectKey, exists := strings.Cut(strings.Trim(path, "/"), "/")
 	if exists {
 		return bucketName, objectKey
 	}
 	return "", path
 }
 
-func Upload(writer http.ResponseWriter, request *http.Request) {
-	ctx := request.Context()
-
+func Upload(writer http.ResponseWriter, request *http.Request) error {
 	switch request.Method {
 
 	case "POST":
 
 		parsedQuery, err := url.ParseQuery(request.URL.RawQuery)
 		if err != nil {
-			fmt.Printf("%s", err)
-			return
+			return err
 		}
 
 		uploadIds, exists := parsedQuery["uploadId"]
 		if exists {
-			for _, uploadId := range uploadIds {
-				path, err := base64.StdEncoding.DecodeString(uploadId)
+			for _, encodedUploadId := range uploadIds {
+				uploadId, err := base64.StdEncoding.DecodeString(encodedUploadId)
 				if err != nil {
-					fmt.Printf("%s", err)
-					return
+					return err
+				}
+
+				path, suffix, found := strings.Cut(string(uploadId), ":")
+				if !found {
+					return err
+				}
+				bucketName, objectName := bucketNameAndObjectKey(path)
+
+				storage := Storage{
+					RootFolder: request.Context().Value(KeyDataFolder).(string),
 				}
 
 				body, err := io.ReadAll(request.Body)
 				if err != nil {
-					fmt.Printf("%s", err)
-					return
+					return err
 				}
 
 				payload := UploadDone{}
 				err = xml.Unmarshal(body, &payload)
 				if err != nil {
-					fmt.Printf("%s", err)
-					return
+					return err
 				}
-				println(string(path[:]))
+
+				err = storage.CheckUpload(bucketName, objectName, suffix, payload)
+				if err != nil {
+					return err
+				}
+
 			}
-			return
 		} else {
 			path, err := url.QueryUnescape(request.URL.Path)
 			if err != nil {
-				fmt.Printf("%s", err)
-				return
+				return err
 			}
 			bucketName, objectKey := bucketNameAndObjectKey(path)
 
@@ -99,19 +106,16 @@ func Upload(writer http.ResponseWriter, request *http.Request) {
 			responseBytes, err := xml.Marshal(response)
 
 			if err != nil {
-				fmt.Printf("%s", err)
-				return
+				return err
 			}
 
 			writer.Write(responseBytes)
-			return
 
 		}
 	case "PUT":
 		parsedQuery, err := url.ParseQuery(request.URL.RawQuery)
 		if err != nil {
-			fmt.Printf("%s", err)
-			return
+			return err
 		}
 
 		uploadIds, exists := parsedQuery["uploadId"]
@@ -120,14 +124,12 @@ func Upload(writer http.ResponseWriter, request *http.Request) {
 			for _, encodedUploadId := range uploadIds {
 				uploadId, err := base64.StdEncoding.DecodeString(encodedUploadId)
 				if err != nil {
-					fmt.Printf("%s", err)
-					return
+					return err
 				}
 
 				path, suffix, found := strings.Cut(string(uploadId), ":")
 				if !found {
-					fmt.Printf("Invalid uploadId %s", err)
-					return
+					return err
 				}
 				bucketName, objectName := bucketNameAndObjectKey(path)
 
@@ -136,8 +138,7 @@ func Upload(writer http.ResponseWriter, request *http.Request) {
 				}
 				err = storage.PushData(bucketName, objectName, suffix, request.Body)
 				if err != nil {
-					fmt.Printf("%s", err)
-					return
+					return err
 				}
 
 				// payload := UploadPart{}
@@ -147,10 +148,9 @@ func Upload(writer http.ResponseWriter, request *http.Request) {
 				// 	return
 				// }
 			}
-			return
 		}
 
 	}
-	fmt.Printf("%s: [%s] /%s request\n", ctx.Value(KeyServerAddr), request.Method, request.URL.Path)
-
+	fmt.Printf("%s: [%s] %s request\n", request.Context().Value(KeyServerAddr), request.Method, request.URL.Path)
+	return nil
 }
