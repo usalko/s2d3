@@ -56,11 +56,13 @@ func (storage *Storage) Init() {
 }
 
 func (storage *Storage) CheckUpload(bucketName string, objectKey string, suffix string, uploadDone UploadDone) error {
-	_, err := os.Open(strings.Join([]string{
+	file, err := os.Open(strings.Join([]string{
 		storage.RootFolder,
 		bucketName,
 		objectKey,
 	}, "/"))
+	defer file.Close()
+
 	if err != nil {
 		return err
 	}
@@ -105,4 +107,32 @@ func (storage *Storage) PushData(bucketName string, objectKey string, suffix str
 		return fmt.Errorf("invalid count of segments for content length %d", len(content))
 	}
 	return nil
+}
+
+func (storage *Storage) GetData(bucketName string, objectKey string, suffix string) ([]byte, error) {
+	file, err := os.Open(strings.Join([]string{
+		storage.RootFolder,
+		bucketName,
+		objectKey,
+	}, "/"))
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	if fileInfo.IsDir() {
+		return nil, fmt.Errorf("can't open object %s/%s cause not implemented", bucketName, objectKey)
+	}
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }

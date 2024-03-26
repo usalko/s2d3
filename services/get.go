@@ -1,7 +1,24 @@
 package services
 
-import "net/http"
+import (
+	"net/http"
+)
 
-func Get(writer http.ResponseWriter, request *http.Request) {
+func Get(writer http.ResponseWriter, request *http.Request) error {
+	storage := Storage{
+		RootFolder: request.Context().Value(KeyDataFolder).(string),
+	}
 
+	bucketName, objectName := bucketNameAndObjectKey(request.URL.Path)
+
+	data, err := storage.GetData(bucketName, objectName, "")
+	if err != nil {
+		return err
+	}
+
+	_, err = writer.Write(data)
+	if err != nil {
+		return err
+	}
+	return nil
 }
