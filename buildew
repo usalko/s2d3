@@ -1,0 +1,51 @@
+#!/bin/bash
+
+GO=go
+COMMAND=$1
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+    --go-version)
+        GO_VERSION="$2"
+        shift
+        shift
+        ;;
+    *)
+        COMMAND=$1
+        shift
+        break
+        ;;
+    esac
+    shift
+done
+
+# MODULES
+MODULES=(utils models client services .)
+
+if [ $COMMAND == "test" ]; then
+    echo Start all tests:
+    $GO test
+fi
+
+if [ $COMMAND == "tidy" ]; then
+    echo Start tidy for all modules:
+    for module in "${MODULES[@]}"; do
+        echo -n Tidy $module
+        CD=$PWD
+        cd $module
+        $GO mod tidy
+        result=$?
+        cd $CD
+        if [ $result -ne 0 ]; then
+            echo -e '\033[01;31m' " Error"
+            echo -e -n '\033[00m'
+        else
+            echo -e '\033[01;32m' " Done"
+            echo -e -n '\033[00m'
+        fi
+    done
+fi
+
+
+# Useful references:
+# Submodule issues: @see https://stackoverflow.com/questions/67678203/why-does-go-get-fail-with-invalid-version-unknown-revision
+# ....
