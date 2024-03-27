@@ -8,6 +8,7 @@ package s2d3
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -24,18 +25,19 @@ const TEST_SERVED_LOCAL_FOLDER = "./.s3data"
 const TEST_OBJECT_CONTENT = "Test"
 const TEST_OBJECT_PATH = "test123/test456"
 
-func WithContextDecorator(handler http.HandlerFunc, dataFolder string) http.HandlerFunc {
+func WithContextDecorator(handler http.HandlerFunc, dataFolder string, urlContext string) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		ctx := request.Context()
 		ctx = context.WithValue(ctx, services.KeyServerAddr, serverAddr)
 		ctx = context.WithValue(ctx, services.KeyDataFolder, dataFolder)
+		ctx = context.WithValue(ctx, services.KeyUrlContext, urlContext)
 		handler(writer, request.WithContext(ctx))
 	}
 }
 
 func TestList(t *testing.T) {
 	InitStorage(TEST_SERVED_LOCAL_FOLDER)
-	server := httptest.NewServer(WithContextDecorator(services.ApiRouter, TEST_SERVED_LOCAL_FOLDER))
+	server := httptest.NewServer(WithContextDecorator(services.ApiRouter, TEST_SERVED_LOCAL_FOLDER, ""))
 	// Close the server when test finishes
 	defer server.Close()
 	parsedUrl, _ := url.Parse(server.URL)
@@ -60,7 +62,7 @@ func TestList(t *testing.T) {
 
 func TestUpload(t *testing.T) {
 	InitStorage(TEST_SERVED_LOCAL_FOLDER)
-	server := httptest.NewServer(WithContextDecorator(services.ApiRouter, TEST_SERVED_LOCAL_FOLDER))
+	server := httptest.NewServer(WithContextDecorator(services.ApiRouter, TEST_SERVED_LOCAL_FOLDER, ""))
 	// Close the server when test finishes
 	defer server.Close()
 	parsedUrl, _ := url.Parse(server.URL)
@@ -98,7 +100,7 @@ func TestUpload(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	InitStorage(TEST_SERVED_LOCAL_FOLDER)
-	server := httptest.NewServer(WithContextDecorator(services.ApiRouter, TEST_SERVED_LOCAL_FOLDER))
+	server := httptest.NewServer(WithContextDecorator(services.ApiRouter, TEST_SERVED_LOCAL_FOLDER, ""))
 	// Close the server when test finishes
 	defer server.Close()
 	parsedUrl, _ := url.Parse(server.URL)
@@ -114,6 +116,44 @@ func TestGet(t *testing.T) {
 	}
 
 	reader, err := s3Client.Get(TEST_OBJECT_PATH)
+	if err != nil {
+		t.Errorf("Error in attempt to get object %d", err)
+	}
+
+	body, err := io.ReadAll(reader)
+	if err != nil {
+		t.Errorf("Error in attempt to write stream %d", err)
+	}
+
+	if len(body) == 0 {
+		t.Errorf("Didn't read anything %d", err)
+	}
+
+	if string(body) != TEST_OBJECT_CONTENT {
+		t.Errorf("Wrong content in object %d", err)
+	}
+
+}
+
+func TestUrlContext(t *testing.T) {
+	testUrlContext := "/s3"
+	InitStorage(TEST_SERVED_LOCAL_FOLDER)
+	server := httptest.NewServer(WithContextDecorator(services.ApiRouter, TEST_SERVED_LOCAL_FOLDER, testUrlContext))
+	// Close the server when test finishes
+	defer server.Close()
+	parsedUrl, _ := url.Parse(server.URL)
+	serverAddr = parsedUrl.Host
+
+	s3Client, err := client.NewClient(&client.Client{
+		AccessKeyId: "",
+		Domain:      parsedUrl.Host, //"localhost:3333",
+		Protocol:    "http",
+	})
+	if err != nil {
+		t.Errorf("Error in attempt to create new client %d", err)
+	}
+
+	reader, err := s3Client.Get(fmt.Sprintf("%s/%s", testUrlContext, TEST_OBJECT_PATH))
 	if err != nil {
 		t.Errorf("Error in attempt to get object %d", err)
 	}

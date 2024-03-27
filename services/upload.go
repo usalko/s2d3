@@ -36,8 +36,13 @@ type UploadDone struct {
 	Parts   []models.XmlPart `xml:"Part"`
 }
 
-func bucketNameAndObjectKey(path string) (string, string) {
-	bucketName, objectKey, exists := strings.Cut(strings.Trim(path, "/"), "/")
+func bucketNameAndObjectKey(path string, urlContext string) (string, string) {
+	bucketName, objectKey, exists := strings.Cut(strings.TrimPrefix(
+		strings.TrimPrefix(
+			strings.Trim(path, "/"),
+			strings.Trim(urlContext, "/"),
+		),
+		"/"), "/")
 	if exists {
 		return bucketName, objectKey
 	}
@@ -66,7 +71,7 @@ func Upload(writer http.ResponseWriter, request *http.Request) error {
 				if !found {
 					return err
 				}
-				bucketName, objectName := bucketNameAndObjectKey(path)
+				bucketName, objectName := bucketNameAndObjectKey(path, request.Context().Value(KeyUrlContext).(string))
 
 				storage := Storage{
 					RootFolder: request.Context().Value(KeyDataFolder).(string),
@@ -94,7 +99,7 @@ func Upload(writer http.ResponseWriter, request *http.Request) error {
 			if err != nil {
 				return err
 			}
-			bucketName, objectKey := bucketNameAndObjectKey(path)
+			bucketName, objectKey := bucketNameAndObjectKey(path, request.Context().Value(KeyUrlContext).(string))
 
 			uploadId := strings.Join([]string{path, hex.EncodeToString(new(big.Int).SetInt64(time.Now().UnixMicro()).Bytes())}, ":")
 
@@ -131,7 +136,7 @@ func Upload(writer http.ResponseWriter, request *http.Request) error {
 				if !found {
 					return err
 				}
-				bucketName, objectName := bucketNameAndObjectKey(path)
+				bucketName, objectName := bucketNameAndObjectKey(path, request.Context().Value(KeyUrlContext).(string))
 
 				storage := Storage{
 					RootFolder: request.Context().Value(KeyDataFolder).(string),
