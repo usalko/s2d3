@@ -14,8 +14,8 @@ require (
 )
 
 replace (
-	github.com/usalko/s2d3/models v0.1.0 => "./models"
-	github.com/usalko/s2d3/utils v0.1.0 => "./utils"
-	github.com/usalko/s2d3/client v0.1.0 => "./client"
-	github.com/usalko/s2d3/services v0.1.0 => "./services"
+	github.com/usalko/s2d3/client v0.1.0 => ./client
+	github.com/usalko/s2d3/models v0.1.0 => ./models
+	github.com/usalko/s2d3/services v0.1.0 => ./services
+	github.com/usalko/s2d3/utils v0.1.0 => ./utils
 )
