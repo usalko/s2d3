@@ -19,6 +19,7 @@ type ServiceContextKey string
 
 const KeyServerAddr ServiceContextKey = "serverAddr"
 const KeyDataFolder ServiceContextKey = "dataFolder"
+const KeyUrlContext ServiceContextKey = "urlContext"
 
 func ApiRouter(writer http.ResponseWriter, request *http.Request) {
 
