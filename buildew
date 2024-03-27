@@ -45,6 +45,12 @@ if [ $COMMAND == "tidy" ]; then
     done
 fi
 
+if [ "$COMMAND" == "version" ]; then
+    echo Set version:
+    git tag v$1
+    git push origin v$1
+fi
+
 # ======================================= GENERAL INFO ============================================
 if [ "$COMMAND" == "modules" ] || [ "$COMMAND" == "module" ]; then
     echo There are available modules:
@@ -55,7 +61,7 @@ fi
 
 # =================================================================================================
 
-AVAILABLE_COMMANDS="test tidy modules"
+AVAILABLE_COMMANDS="test tidy version modules"
 echo ''
 [[ $AVAILABLE_COMMANDS =~ (^| )$COMMAND($| ) ]] && echo 'Ok' || echo 'Unknown command: ' "$COMMAND" && echo 'Available commands are: ' "$AVAILABLE_COMMANDS"
 
