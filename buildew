@@ -45,6 +45,19 @@ if [ $COMMAND == "tidy" ]; then
     done
 fi
 
+# ======================================= GENERAL INFO ============================================
+if [ "$COMMAND" == "modules" ] || [ "$COMMAND" == "module" ]; then
+    echo There are available modules:
+    for MODULE in "${MODULES[@]}"; do
+        echo ' - ' $MODULE
+    done
+fi
+
+# =================================================================================================
+
+AVAILABLE_COMMANDS="test tidy modules"
+echo ''
+[[ $AVAILABLE_COMMANDS =~ (^| )$COMMAND($| ) ]] && echo 'Ok' || echo 'Unknown command: ' "$COMMAND" && echo 'Available commands are: ' "$AVAILABLE_COMMANDS"
 
 # Useful references:
 # Submodule issues: @see https://stackoverflow.com/questions/67678203/why-does-go-get-fail-with-invalid-version-unknown-revision
