@@ -7,7 +7,7 @@ go mod init example.com/my-s2d3-demo
 Get the s2d3 module
 Note that you need to include the v in the version tag.
 
-go get github.com/usalko/s2d3@v0.1.3
+go get github.com/usalko/s2d3@v0.1.4
 
 package main
 
