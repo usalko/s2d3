@@ -47,8 +47,9 @@ fi
 
 if [ "$COMMAND" == "version" ]; then
     echo Set version:
-    git tag v$1
-    git push origin v$1
+    # Remove initial v for prevent vv issue
+    git tag v"${1#v}"
+    git push origin v"${1#v}"
 fi
 
 # ======================================= GENERAL INFO ============================================
