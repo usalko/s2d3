@@ -51,17 +51,25 @@ if [ "$COMMAND" == "version" ]; then
 
     # TODO: change dependencies for all subpackages (client, models, services, etc...)
 
-    git tag v"${1#v}"
-    git push origin v"${1#v}"
+    TAG_SUFFIX=${1#v}
+
+    git tag "v$TAG_SUFFIX"
+    git push origin "v$TAG_SUFFIX"
+
+    SUB_MODULES=('utils' 'models' 'services' 'client')
+    for SUB_MODULE in "${SUB_MODULES[@]}"; do
+        git tag "$SUB_MODULE/v$TAG_SUFFIX"
+        git push origin "$SUB_MODULE/v$TAG_SUFFIX"
+    done
 fi
 
 if [ "$COMMAND" == "publish" ]; then
-    MODULE_VERSION=v"${1#v}"
-    GOPROXY=proxy.golang.org go list -m "github.com/usalko/s2d3/utils@$MODULE_VERSION"
-    GOPROXY=proxy.golang.org go list -m "github.com/usalko/s2d3/models@$MODULE_VERSION"
-    GOPROXY=proxy.golang.org go list -m "github.com/usalko/s2d3/services@$MODULE_VERSION"
-    GOPROXY=proxy.golang.org go list -m "github.com/usalko/s2d3/client@$MODULE_VERSION"
-    GOPROXY=proxy.golang.org go list -m "github.com/usalko/s2d3@$MODULE_VERSION"
+    TAG_SUFFIX=${1#v}
+    SUB_MODULES=('utils' 'models' 'services' 'client')
+    for SUB_MODULE in "${SUB_MODULES[@]}"; do
+        GOPROXY=proxy.golang.org go list -m "github.com/usalko/s2d3/$SUB_MODULE@v$TAG_SUFFIX"
+    done
+    GOPROXY=proxy.golang.org go list -m "github.com/usalko/s2d3@v$TAG_SUFFIX"
 fi
 
 # ======================================= GENERAL INFO ============================================
