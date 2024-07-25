@@ -52,6 +52,11 @@ if [ "$COMMAND" == "version" ]; then
     git push origin v"${1#v}"
 fi
 
+if [ "$COMMAND" == "publish" ]; then
+    MODULE_VERSION=v"${1#v}"
+    GOPROXY=proxy.golang.org go list -m "github.com/usalko/s2d3@$MODULE_VERSION"
+fi
+
 # ======================================= GENERAL INFO ============================================
 if [ "$COMMAND" == "modules" ] || [ "$COMMAND" == "module" ]; then
     echo There are available modules:
@@ -62,9 +67,9 @@ fi
 
 # =================================================================================================
 
-AVAILABLE_COMMANDS="test tidy version modules"
+AVAILABLE_COMMANDS="test tidy version publish modules"
 echo ''
-[[ $AVAILABLE_COMMANDS =~ (^| )$COMMAND($| ) ]] && echo 'Ok' || echo 'Unknown command: ' "$COMMAND" && echo 'Available commands are: ' "$AVAILABLE_COMMANDS"
+[[ $AVAILABLE_COMMANDS =~ (^| )$COMMAND($| ) ]] && echo 'Ok' || (echo 'Unknown command: ' "$COMMAND" && echo 'Available commands are: ' "$AVAILABLE_COMMANDS")
 
 # Useful references:
 # Submodule issues: @see https://stackoverflow.com/questions/67678203/why-does-go-get-fail-with-invalid-version-unknown-revision
