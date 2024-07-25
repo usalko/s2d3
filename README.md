@@ -7,7 +7,7 @@ go mod init example.com/my-s2d3-demo
 Get the s2d3 module
 Note that you need to include the v in the version tag.
 
-go get github.com/usalko/s2d3@v0.1.0
+go get github.com/usalko/s2d3@v0.1.3
 
 package main
 
@@ -20,8 +20,3 @@ import (
 func main() {
     s2d3.Serve("./s3data")
 }
-
-Testing
-Tagging
-git tag v0.1.0
-git push origin --tags
