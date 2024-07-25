@@ -60,6 +60,7 @@ if [ "$COMMAND" == "publish" ]; then
     GOPROXY=proxy.golang.org go list -m "github.com/usalko/s2d3/utils@$MODULE_VERSION"
     GOPROXY=proxy.golang.org go list -m "github.com/usalko/s2d3/models@$MODULE_VERSION"
     GOPROXY=proxy.golang.org go list -m "github.com/usalko/s2d3/services@$MODULE_VERSION"
+    GOPROXY=proxy.golang.org go list -m "github.com/usalko/s2d3/client@$MODULE_VERSION"
     GOPROXY=proxy.golang.org go list -m "github.com/usalko/s2d3@$MODULE_VERSION"
 fi
 
