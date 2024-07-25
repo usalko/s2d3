@@ -58,6 +58,9 @@ fi
 if [ "$COMMAND" == "publish" ]; then
     MODULE_VERSION=v"${1#v}"
     GOPROXY=proxy.golang.org go list -m "github.com/usalko/s2d3@$MODULE_VERSION"
+    GOPROXY=proxy.golang.org go list -m "github.com/usalko/s2d3/models@$MODULE_VERSION"
+    GOPROXY=proxy.golang.org go list -m "github.com/usalko/s2d3/services@$MODULE_VERSION"
+    GOPROXY=proxy.golang.org go list -m "github.com/usalko/s2d3/utils@$MODULE_VERSION"
 fi
 
 # ======================================= GENERAL INFO ============================================
