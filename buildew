@@ -70,8 +70,9 @@ if [ "$COMMAND" == "version" ]; then
     echo Please enter new version \(format: x.y.z, where x, y and z are integer numbers\)
     read NEW_S2D3_PACKAGE_VERSION
 
+    echo $NEW_S2D3_PACKAGE_VERSION
     # Check version format
-    [[ $NEW_S2D3_PACKAGE_VERSION =~ \d+\.\d+\.\d+ ]] || ( echo ERROR: wrong version format; exit 1 )
+    [[ "$NEW_S2D3_PACKAGE_VERSION" =~ [0-9]+\.[0-9]+\.[0-9]+ ]] || ( echo ERROR: wrong version format; exit 1 )
 
     # Replace versions in go.mod files
     find . -name go.mod -exec sed -i "s/$S2D3_PACKAGE_VERSION/$NEW_S2D3_PACKAGE_VERSION/g" '{}' \;
@@ -79,15 +80,19 @@ if [ "$COMMAND" == "version" ]; then
 
     # Replace version in README.md
     sed -i "s/$S2D3_PACKAGE_VERSION/$NEW_S2D3_PACKAGE_VERSION/g" ./README.md
-    [ $? -eq 0 ] || ( echo Fail replace version in README.md; exit 1 ) 
+    [ $? -eq 0 ] || ( echo Fail replace version in README.md; exit 1 )
+
+    if [ "$S2D3_PACKAGE_VERSION" != "$NEW_S2D3_PACKAGE_VERSION" ]; then
+        TAG_NAME="v$NEW_S2D3_PACKAGE_VERSION"
+        git tag "$TAG_NAME"
+        git push origin tag "$TAG_NAME"
+    fi
 
     # Replace version in .env file
-    # Replace version in README.md
-    sed -i "s/$S2D3_PACKAGE_VERSION/$NEW_S2D3_PACKAGE_VERSION/g" ./README.md
+    sed -i "s/$S2D3_PACKAGE_VERSION/$NEW_S2D3_PACKAGE_VERSION/g" ./.env
 fi
 
 # =================================================================================================
 
 AVAILABLE_COMMANDS="build publish test version"
-echo ''
 [[ $AVAILABLE_COMMANDS =~ (^| )$COMMAND($| ) ]] && echo 'Ok' || (echo 'Unknown command: ' "$COMMAND" && echo 'Available commands are: ' "$AVAILABLE_COMMANDS")
