@@ -22,7 +22,7 @@ func InitStorage(localFolder string) {
 	storage.Init()
 }
 
-func Serve(localFolder string) (context.Context, context.CancelFunc) {
+func Serve(localFolder string, addr string, port int) (context.Context, context.CancelFunc) {
 	println("Go on")
 
 	multiplexer := http.NewServeMux()

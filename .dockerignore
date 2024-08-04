@@ -1,0 +1,12 @@
+# Local environment
+.env
+.s3data
+# IDE specific artifacts
+.vscode
+# Docker artifacts
+.Dockerfile
+# Helper scripts
+buildew
+
+# Local settings
+.env

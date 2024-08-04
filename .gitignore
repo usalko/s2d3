@@ -32,3 +32,6 @@ __debug*
 
 # Test data
 .s3data
+
+# Local settings
+.env
