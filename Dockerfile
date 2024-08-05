@@ -12,7 +12,7 @@ WORKDIR /go/src/s2d3
 RUN go mod tidy
 RUN go install -tags=musl
 
-RUN go build -tags=musl -tags=dynamic
+RUN go build -tags=musl -tags=dynamic cmd/s2d3/main.go
 
 # SHOW CONTENT FROM BUILD FOLDER
 RUN ls -la /go/src/s2d3
