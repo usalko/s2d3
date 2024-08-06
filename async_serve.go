@@ -22,8 +22,9 @@ func InitStorage(localFolder string) {
 	storage.Init()
 }
 
-func Serve(localFolder string, addr string, port int) (context.Context, context.CancelFunc) {
-	println("Go on")
+func AsyncServe(localFolder string, addr string, port int) (context.Context, context.CancelFunc) {
+	fmt.Printf("Serve local folder '%s' \n", localFolder)
+	fmt.Printf("Host: %s Port: %d \n", addr, port)
 
 	multiplexer := http.NewServeMux()
 	multiplexer.HandleFunc(".*", services.ApiRouter)

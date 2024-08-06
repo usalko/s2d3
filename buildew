@@ -66,7 +66,7 @@ if [ "$COMMAND" == "test" ]; then
 fi
 
 if [ "$COMMAND" == "run" ]; then
-    docker run usalko/s2d3:0.1.5
+    docker run usalko/s2d3:"$S2D3_PACKAGE_VERSION"
 fi
 
 if [ "$COMMAND" == "version" ]; then
