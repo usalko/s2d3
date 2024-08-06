@@ -65,6 +65,10 @@ if [ "$COMMAND" == "test" ]; then
     go test s2d3
 fi
 
+if [ "$COMMAND" == "run" ]; then
+    docker run usalko/s2d3:0.1.5
+fi
+
 if [ "$COMMAND" == "version" ]; then
     echo Previous version "$S2D3_PACKAGE_VERSION"
     echo Please enter new version \(format: x.y.z, where x, y and z are integer numbers\)
@@ -94,5 +98,5 @@ fi
 
 # =================================================================================================
 
-AVAILABLE_COMMANDS="build publish test version"
+AVAILABLE_COMMANDS="build publish test version run"
 [[ $AVAILABLE_COMMANDS =~ (^| )$COMMAND($| ) ]] && echo 'Ok' || (echo 'Unknown command: ' "$COMMAND" && echo 'Available commands are: ' "$AVAILABLE_COMMANDS")
