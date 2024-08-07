@@ -87,6 +87,9 @@ if [ "$COMMAND" == "version" ]; then
     [ $? -eq 0 ] || ( echo Fail replace version in README.md; exit 1 )
 
     if [ "$S2D3_PACKAGE_VERSION" != "$NEW_S2D3_PACKAGE_VERSION" ]; then
+        git add .
+        git commit -m "There is the new version $NEW_S2D3_PACKAGE_VERSION"
+        git push
         TAG_NAME="v$NEW_S2D3_PACKAGE_VERSION"
         git tag "$TAG_NAME"
         git push origin tag "$TAG_NAME"
