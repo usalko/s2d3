@@ -32,7 +32,7 @@ func AsyncServe(localFolder string, addr string, port int) (context.Context, con
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	server := &http.Server{
-		Addr:    ":3333",
+		Addr:    fmt.Sprintf("%s:%d", addr, port),
 		Handler: multiplexer,
 		BaseContext: func(listener net.Listener) context.Context {
 			ctx = context.WithValue(ctx, services.KeyServerAddr, listener.Addr().String())

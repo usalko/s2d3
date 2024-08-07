@@ -10,3 +10,7 @@ buildew
 
 # Local settings
 .env
+
+# Build artifacts
+main
+__debug*

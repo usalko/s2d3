@@ -1,0 +1,11 @@
+#!/bin/bash
+echo Use .env file to read sensitive information
+while IPS='=' read -r key _; do
+    if [ "${key}" != "" ] && [[ ! "${key}" =~ .*#.* ]]; then
+        eval "export ${key}"
+    fi
+done <'.env'
+
+IMAGE_NAME=usalko/s2d3
+
+docker exec -it "$(docker container ls | grep "${IMAGE_NAME}" | awk ' { print $1 } ')" sh

@@ -24,9 +24,6 @@ go.work
 *.bkp
 *.dtmp
 
-# Debug
-__debug*
-
 # IDE Specific
 .vscode
 
@@ -35,3 +32,7 @@ __debug*
 
 # Local settings
 .env
+
+# Build artifacts
+main
+__debug*

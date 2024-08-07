@@ -27,4 +27,4 @@ COPY --from=build /usr/local /usr/local
 #       cyrus-sasl \
 #       openssl \
 
-ENTRYPOINT ["s2d3"]
+ENTRYPOINT ["s2d3", "-a", "0.0.0.0"]
