@@ -92,7 +92,16 @@ if [ "$COMMAND" == "version" ]; then
         git push
         TAG_NAME="v$NEW_S2D3_PACKAGE_VERSION"
         git tag "$TAG_NAME"
+        git tag "client/$TAG_NAME"
+        git tag "models/$TAG_NAME"
+        git tag "services/$TAG_NAME"
+        git tag "utils/$TAG_NAME"
+
         git push origin tag "$TAG_NAME"
+        git push origin tag "client/$TAG_NAME"
+        git push origin tag "models/$TAG_NAME"
+        git push origin tag "services/$TAG_NAME"
+        git push origin tag "utils/$TAG_NAME"
     fi
 
     # Replace version in .env file
