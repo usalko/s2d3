@@ -50,6 +50,13 @@ fi
 # =============================================================================
 
 if [ "$COMMAND" == "build" ]; then
+    # Build index.html
+    cd nue
+    nue build --production
+    cd ..
+    # TODO: copy to dstributed folder or just check and then include context into Docker container.
+    # mv nue/.dist/prod /tmp
+
     docker build -f Dockerfile -t "usalko/s2d3:$S2D3_PACKAGE_VERSION" . --progress=plain
 fi
 
