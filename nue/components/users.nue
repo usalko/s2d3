@@ -1,0 +1,7 @@
+<table @name="users-view">
+  <tr :for="user in users">
+    <td><avatar :src="user.avatar"/></td>
+    <td><email :addr="user.email"/></td>
+    <td><pretty-date :date="user.created"/></td>
+  </tr>
+</table>

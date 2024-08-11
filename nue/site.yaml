@@ -1,0 +1,10 @@
+# The document title
+title: S2/3 statistics
+
+# Meta description
+description: Show usage of services
+
+# Favicon
+favicon: /img/logo.svg
+
+globals: [style]

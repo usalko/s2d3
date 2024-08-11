@@ -1,0 +1,7 @@
+<table @name="feedback-view">
+  <tr :for="user in users">
+    <td><strong>{ user.name }</strong></td>
+    <td><email :addr="user.email"/><q>{ user.feedback }</q></td>
+    <td><pretty-date :date="user.created"/></td>
+  </tr>
+</table>

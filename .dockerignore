@@ -14,3 +14,6 @@ buildew
 # Build artifacts
 main
 __debug*
+
+# Nue artifacts
+.dist

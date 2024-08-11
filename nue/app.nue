@@ -1,0 +1,53 @@
+<script>
+  // app router
+  import { router } from '/@nue/app-router.js'
+
+  // the model
+  import model from './models/index.js'
+</script>
+
+<main @name="app">
+  <header>
+    <h1>{title}</h1>
+    <p>{description}</p>
+  </header>
+
+  <!-- navigation for our views (aka "pages" or "routes" )-->
+  <nav>
+    <a href="/">Users</a>
+    <a href="/feedback">Feedback</a>
+    <a href="/analytics">Analytics</a>
+  </nav>
+
+  <!-- placeholder for the views -->
+  <article id="container" />
+
+  <!-- controller code -->
+  <script>
+
+    // setup things after the #container node is mounted
+    mounted() {
+
+      // front page -> show users view
+      router.on('/', async () => {
+        const data = await model.getUsers()
+        this.mountChild('components/users-view', container, { data })
+      })
+
+      // feedback page -> show feedback view
+      router.on('/feedback', async () => {
+        const data = await model.getFeedback()
+        this.mountChild('components/feedbak-view', container, { data })
+      })
+
+      // analytics page -> show analytics view
+      router.on('/analytics', async () => {
+        const data = await model.getAnalytics()
+        this.mountChild('components/analytics-view', container, data)
+      })
+
+      // start routing & setup 
+      router.start(this)
+    }
+  </script>
+</main>
