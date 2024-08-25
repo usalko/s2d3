@@ -13,6 +13,10 @@ func Get(writer http.ResponseWriter, request *http.Request) error {
 
 	data, err := storage.GetData(bucketName, objectName, "")
 	if err != nil {
+		// Handle statistics application
+		statisticsApplicationFolder := request.Context().Value(KeyStatisticsApplicationFolder).(string)
+		fs := http.FileServer(http.Dir(statisticsApplicationFolder))
+		fs.ServeHTTP(writer, request)
 		return err
 	}
 

@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 
 	"github.com/usalko/s2d3/services"
 )
@@ -37,6 +38,7 @@ func AsyncServe(localFolder string, addr string, port int) (context.Context, con
 		BaseContext: func(listener net.Listener) context.Context {
 			ctx = context.WithValue(ctx, services.KeyServerAddr, listener.Addr().String())
 			ctx = context.WithValue(ctx, services.KeyDataFolder, localFolder)
+			ctx = context.WithValue(ctx, services.KeyStatisticsApplicationFolder, os.Getenv("STATISTICS_APPLICATION_FOLDER"))
 			return ctx
 		},
 	}

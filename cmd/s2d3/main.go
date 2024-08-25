@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/usalko/s2d3"
 )
@@ -24,13 +25,19 @@ func main() {
 	ipPort := flag.Int("p", 3333, "ip port")
 	localFolder := flag.String("d", "/tmp", "local folder")
 	urlContext := flag.String("u", "/", "url context")
+	// Folder for the statistics application
+	statisticsApplicationFolder := "/statistics/app"
+	if os.Getenv("STATISTICS_APPLICATION_FOLDER") != "" {
+		statisticsApplicationFolder = os.Getenv("STATISTICS_APPLICATION_FOLDER")
+	}
 
 	flag.Parse()
 
 	http.Handle(*urlContext, &s2d3.ServeLocalFolder{
-		RootFolder: *localFolder,
-		UrlContext: *urlContext,
-		ServerAddr: fmt.Sprintf("%s:%d", *ipAddr, *ipPort),
+		RootFolder:                  *localFolder,
+		UrlContext:                  *urlContext,
+		ServerAddr:                  fmt.Sprintf("%s:%d", *ipAddr, *ipPort),
+		StatisticsApplicationFolder: statisticsApplicationFolder,
 	})
 	fmt.Print(LOGO_ASCII_GRAPHIC)
 	fmt.Printf("Serve local folder '%s' \n", *localFolder)

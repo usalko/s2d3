@@ -22,9 +22,11 @@ FROM alpine:3.20.2 AS runtime
 
 COPY --from=build /go/src/s2d3/main /usr/bin/s2d3
 COPY --from=build /usr/local /usr/local
+# Statistics application
+COPY ./nue/.dist/prod /statistics/app
+ENV STATISTICS_APPLICATION_FOLDER=/statistics/app
 
-# RUN apk --no-cache add \
-#       cyrus-sasl \
-#       openssl \
+RUN apk --no-cache add \
+    curl
 
 ENTRYPOINT ["s2d3", "-a", "0.0.0.0"]
